@@ -200,4 +200,4 @@ const getAllowance = async (db, cardId, date, type) => {
 }
 
 const server = app.listen(port, () => console.log("Listening on port", port))
-server.setTimeout(1000 * 60 * 9)
+server.setTimeout(1000 * 10)
