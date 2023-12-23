@@ -15,7 +15,7 @@ const api_key = process.env.api_key
 const db_location = process.env.db_location
 
 const corsOptions = {
-  origin: process.env.NODE_ENV !== "production" ? 'http://localhost:3001' : 'https://nfcmeals.bitcoinjungle.app',
+  origin: process.env.NODE_ENV !== "production" ? 'http://localhost:3001' : 'https://nfc.str.cr',
 }
 
 // connect to the db
