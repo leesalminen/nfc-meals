@@ -45,21 +45,22 @@
     }
 
     const handleSetType = () => {
-      let type = prompt("What type are scanning for?")
+      let newType = prompt("What type are scanning for?")
 
-      if(!type) {
+      if(!newType) {
         return
       }
 
-      type = type.toLowerCase()
+      newType = newType.toLowerCase()
 
-      localStorage.setItem("type", type)
-      setType(type)
+      localStorage.setItem("type", newType)
+      setType(newType)
     }
 
     const scan = async () => {
       if(!ndef) {
         addtoHistory("❌ Error! NFC not supported on this device.")
+        errorAudio.currentTime = 0
         errorAudio.play()
         return
       }
@@ -68,11 +69,13 @@
         await ndef.scan();
 
         addtoHistory("✅ Success! Scan started successfully.");
+        successAudio.currentTime = 0
         successAudio.play()
         setIsScanning(true)
 
         ndef.onreadingerror = (event) => {
           addtoHistory("❌ Error! Cannot read data from the NFC tag. Try another one?");
+          errorAudio.currentTime = 0
           errorAudio.play()
         };
 
@@ -81,6 +84,7 @@
         };
       } catch (error) {
         addtoHistory(`❌ Error! Scan failed to start: ${error}.`);
+        errorAudio.currentTime = 0
         errorAudio.play()
       }
     }
@@ -104,10 +108,12 @@
       }
 
       if(response.data.error) {
+        errorAudio.currentTime = 0
         errorAudio.play()
       }
 
       if(response.data.success) {
+        successAudio.currentTime = 0
         successAudio.play()
       }
 
