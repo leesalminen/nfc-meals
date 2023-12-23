@@ -55,6 +55,7 @@
 
       localStorage.setItem("type", newType)
       setType(newType)
+      window.location.reload()
     }
 
     const scan = async () => {
