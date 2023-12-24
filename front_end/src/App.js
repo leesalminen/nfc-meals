@@ -343,7 +343,7 @@ function App() {
 }
 
 function EventHistoryItem({el}) {
-  const timeAgo = useRelativeTime(new Date(el.created_at).getTime() + 'Z');
+  const timeAgo = useRelativeTime(Date.parse(el.created_at + 'Z'));
 
   return (
     <li className="list-group-item">
