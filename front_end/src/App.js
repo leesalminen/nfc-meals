@@ -343,12 +343,12 @@ function App() {
 }
 
 function EventHistoryItem({el}) {
-  const timeAgo = useRelativeTime(new Date(el.created_at).getTime());
+  const timeAgo = useRelativeTime(new Date(el.created_at).getTime() + 'Z');
 
   return (
     <li className="list-group-item">
       {el.message}
-      <span className="pull-right text-sm">
+      <span className="text-end" style={{fontSize: 8}}>
         {timeAgo}
       </span>
     </li>
