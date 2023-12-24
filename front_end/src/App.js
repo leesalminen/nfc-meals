@@ -348,7 +348,7 @@ function EventHistoryItem({el}) {
   return (
     <li className="list-group-item">
       {el.message}
-      <span className="text-end" style={{fontSize: 8}}>
+      <span className="float-end" style={{fontSize: 8}}>
         {timeAgo}
       </span>
     </li>
