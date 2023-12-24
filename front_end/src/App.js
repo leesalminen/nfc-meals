@@ -19,6 +19,9 @@
     const [isScanning, setIsScanning] = useState(false)
     const [ndef, setNdef] = useState(getNdef())
     const [type, setType] = useState(localStorage.getItem("type"))
+    const [isAdding, setIsAdding] = useState(false)
+    const [dates, setDates] = useState([])
+    const [types, setTypes] = useState([])
 
     useEffect(() => {
       if(ndef) {
@@ -81,12 +84,47 @@
         };
 
         ndef.onreading = (event) => {
-          onReading(event); //Find function below
+          if(isAdding) {
+            onWriting(event)
+          } else {
+            onReading(event)
+          }
         };
       } catch (error) {
         addtoHistory(`❌ Error! Scan failed to start: ${error}.`);
         errorAudio.currentTime = 0
         errorAudio.play()
+      }
+    }
+
+    const onWriting = async ({serialNumber}) => {
+      serialNumber = convertSerial(serialNumber)
+      console.log(serialNumber)
+
+      const response = await axios("/cards", {
+        method: "POST",
+        data: {
+          card_uid: serialNumber,
+          dates,
+          types,
+          key: getApiKey(),
+        }
+      })
+
+      if(response.data.error) {
+        errorAudio.currentTime = 0
+        errorAudio.play()
+      }
+
+      if(response.data.success) {
+        successAudio.currentTime = 0
+        successAudio.play()
+      }
+
+      console.log(response.data)
+
+      if(response.data.data) {
+        setHistory(response.data.data)
       }
     }
 
@@ -135,6 +173,43 @@
       return ""
     }
 
+    const handleNewDate = (e) => {
+      if(e.target.value) {
+        const newDates = [...dates]
+        newDates.push(e.target.value)
+        setDates(newDates)
+        e.target.value = null
+      }
+    }
+
+    const removeDate = (index) => {
+      const newDates = [...dates]
+      newDates.splice(index, 1)
+      setDates(newDates)
+    }
+
+    const handleNewType = (e) => {
+      if(e.target.value) {
+        const newTypes = [...types]
+        newTypes.push(e.target.value.toLowerCase())
+        setTypes(newTypes)
+        e.target.value = null
+      }
+    }
+
+    const removeType = (index) => {
+      const newTypes = [...types]
+      newTypes.splice(index, 1)
+      setTypes(newTypes)
+    }
+
+    const handleTypeEnter = (e) => {
+      const keyCode = e.keyCode
+      if (keyCode === 13) {
+        handleNewType(e)
+      }
+    }
+
     if(!ndef) {
       return (
         <div className="container">
@@ -175,7 +250,11 @@
                 </div>
               }
 
-              <button onClick={handleSetType} className="btn btn-primary mx-2">
+              <button onClick={() => { setIsAdding(true) }} className="btn btn-secondary mx-2" disabled={isAdding}>
+                Add Cards
+              </button>
+
+              <button onClick={handleSetType} className="btn btn-secondary mx-2">
                 Set Type
               </button>
               
@@ -185,13 +264,58 @@
                   {!isScanning && <span>Start Scanning</span>}
                 </button>
               }
-
-
           </div>
         </div>
 
         <hr />
 
+        {isAdding &&
+          <div className="row">
+            <div className="col">
+              <h5>Add Cards</h5>
+
+                <p>Date(s)</p>
+                <ul className="list-group">
+                  {
+                    dates.map((el, index) => {
+                      return (
+                        <li className="list-group-item" key={index}>
+                          {el}
+                          <a onClick={() => removeDate(index)}>
+                            ❌
+                          </a>
+                        </li>
+                      )
+                    })
+                  }
+                  <li className="list-group-item">
+                    <input type="date" onChange={handleNewDate} />
+                  </li>
+                </ul>
+
+
+                <p>Type(s)</p>
+                <ul className="list-group">
+                  {
+                    types.map((el, index) => {
+                      return (
+                        <li className="list-group-item" key={index}>
+                          {el}
+                          <a onClick={() => removeType(index)}>
+                            ❌
+                          </a>
+                        </li>
+                      )
+                    })
+                  }
+                  <li className="list-group-item">
+                    <input type="text" onKeyDown={handleTypeEnter} onBlur={handleNewType} />
+                  </li>
+                </ul>
+
+            </div>
+          </div>
+        }
 
         <div className="row">
           <div className="col">
@@ -210,8 +334,6 @@
                 }
               </ul>
             }
-
-
           </div>
         </div>
 

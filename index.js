@@ -64,6 +64,48 @@ app.post('/events', async (req, res) => {
   return res.send({success: true, data: events})
 })
 
+app.post('/cards', async (req, res) => {
+  const card_uid = req.body.card_uid
+  const dates = req.body.dates
+  const types = req.body.types
+
+  let successCount = 0
+
+  if(!card_uid) {
+    return await returnError(db, res, "card_uid required")
+  }
+
+  const newCard = await createCard(db, card_uid)
+
+  if(!newCard) {
+    return await returnError(db, res, "error creating card")
+  }
+
+  const card = await getCard(db, card_uid)
+
+  if(!card) {
+    return await returnError(db, res, "error getting card")
+  }
+
+  for (var i = dates.length - 1; i >= 0; i--) {
+    const date = dates[i]
+
+    for (var y = types.length - 1; y >= 0; y--) {
+      const type = types[y]
+      console.log('creating', card.id, date, type)
+      const success = await createCardAllowance(db, card.id, date, type)
+
+      if(success) {
+        successCount++
+      }
+    }
+  }
+
+  await createEvent(db, `✅ Success! ${successCount} records created`)
+  const events = await getEvents(db)
+  return res.send({success: true, created: successCount, data: events})
+})
+
 app.post('/scan', async (req, res) => {
   const serialNumber = req.body.serialNumber
   const date         = convertTZ(req.body.date, -6)
@@ -144,6 +186,19 @@ const createEvent = async (db, message) => {
   }
 }
 
+const createCard = async (db, card_uid) => {
+  try {
+    return await db.run(
+      "INSERT INTO cards (card_uid) VALUES (?)",
+      [
+        card_uid,
+      ]
+    )
+  } catch {
+    return false
+  }
+}
+
 const getCard = async (db, serialNumber) => {
   try {
     return await db.get(
@@ -183,6 +238,22 @@ const getUsage = async (db, allowanceId) => {
     return false
   }
 }
+
+const createCardAllowance = async (db, cardId, date, type) => {
+  try {
+    return await db.run(
+      "INSERT INTO card_allowances (card_id, allowance_date, type) VALUES (?, ?, ?)",
+      [
+        cardId,
+        date,
+        type,
+      ]
+    )
+  } catch {
+    return false
+  }
+}
+
 
 const getAllowance = async (db, cardId, date, type) => {
   try {
