@@ -32,7 +32,7 @@ app.use(bodyParser.json())
 app.use(compression())
 app.use(cors(corsOptions))
 app.use(async (req, res, next) => {
-  if(req.path === '/' || req.path === '/events' || req.path === '/scan') {
+  if(req.path.indexOf(['/', '/events', '/scan', '/cards']) !== -1) {
     const key = req.query.key || req.body.key
 
     if(key !== api_key) {
@@ -76,11 +76,6 @@ app.post('/cards', async (req, res) => {
   }
 
   const newCard = await createCard(db, card_uid)
-
-  if(!newCard) {
-    return await returnError(db, res, "error creating card")
-  }
-
   const card = await getCard(db, card_uid)
 
   if(!card) {
