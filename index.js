@@ -87,11 +87,14 @@ app.post('/cards', async (req, res) => {
 
     for (var y = types.length - 1; y >= 0; y--) {
       const type = types[y]
-      console.log('creating', card.id, date, type)
-      const success = await createCardAllowance(db, card.id, date, type)
+      const allowance = await getAllowance(db, card.id, date, type)
 
-      if(success) {
-        successCount++
+      if(!allowance) {
+        const success = await createCardAllowance(db, card.id, date, type)
+
+        if(success) {
+          successCount++
+        }
       }
     }
   }
